@@ -1,0 +1,30 @@
+{
+  "name": "meteor-rspack-fullapp-repro",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test --once --full-app --driver-package meteortesting:mocha --port 4100 --exclude-archs \"web.browser,web.browser.legacy,web.cordova\" --raw-logs"
+  },
+  "dependencies": {
+    "@swc/helpers": "^0.5.17",
+    "meteor-node-stubs": "^1.2.13"
+  },
+  "devDependencies": {
+    "@meteorjs/rspack": "^2.0.1",
+    "@rsdoctor/rspack-plugin": "^1.5.7",
+    "@rspack/cli": "^1.7.1",
+    "@rspack/core": "^1.7.1"
+  },
+  "meteor": {
+    "modern": true,
+    "mainModule": {
+      "client": "client/main.js",
+      "server": "server/main.js"
+    },
+    "testModule": {
+      "client": "client/main.js",
+      "server": "test/server/main.js"
+    }
+  }
+}

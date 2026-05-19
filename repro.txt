@@ -1,0 +1,23 @@
+
+> meteor-rspack-fullapp-repro@0.0.1 test
+> meteor test --once --full-app --driver-package meteortesting:mocha --port 4100 --exclude-archs "web.browser,web.browser.legacy,web.cordova" --raw-logs
+
+[[[[[ Tests ]]]]]
+
+=> Started proxy.
+=> Started MongoDB.
+[34m=> 📦 Rspack Dependencies                                                       [0m
+[36m   • @swc/helpers@0.5.17                                                        [0m
+[36m   • @rsdoctor/rspack-plugin@1.5.7                                              [0m
+[34m=> 🔧 Installing 1 dev dependency...                                            [0m
+[34m=> 🔧 Installing 1 dependency...                                                [0m
+[32m=> ✅ Installed Rspack dependencies                                              [0m
+[34m=> Adding gitignore entries for Meteor Modern-Tools build context directories: _build, */build-assets, */build-chunks, .rsdoctor[0m
+[32m=> Added gitignore entries for Meteor Modern-Tools build context directories    [0m
+=> Build failed:
+   
+   While building the application:
+   error: Could not find mainModule for 'os' architecture:
+   _build/test/server-meteor.js
+   Check the "meteor" section of your package.json file?
+   

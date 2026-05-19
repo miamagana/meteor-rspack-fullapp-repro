@@ -1,0 +1,8 @@
+meteor-base
+mobile-experience
+mongo
+ecmascript
+modules
+static-html
+meteortesting:mocha
+rspack
