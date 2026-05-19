@@ -8,7 +8,7 @@
 
 Hi, follow-on bug after the #14055 fix landed in 3.4.1.
 
-On an app that declares both `meteor.mainModule.server` and `meteor.testModule.server`, `meteor test --full-app` fails at build time:
+On an app that declares both `meteor.mainModule.server` and `meteor.testModule.server` (we use `testModule.server` to curate one server-side test entry instead of relying on eager `*.tests.js` discovery — recommended in the Meteor docs), `meteor test --full-app` fails at build time:
 
 ```
 => Build failed:
