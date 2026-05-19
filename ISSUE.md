@@ -1,39 +1,14 @@
 # Draft upstream issue text
 
-> Paste this either as a comment on [meteor/meteor#14055](https://github.com/meteor/meteor/issues/14055) or as a new issue. Not posted automatically.
+> Paste as a comment on [meteor/meteor#14055](https://github.com/meteor/meteor/issues/14055), or as a new issue cross-linking it.
 
 ---
 
 **Title:** `[Rspack 3.4.1] meteor test --full-app fails: Could not find mainModule for _build/test/server-meteor.js`
 
-## Summary
+Hi, follow-on bug after the #14055 fix landed in 3.4.1.
 
-After upgrading to Meteor 3.4.1 (which closed #14055), `meteor test --full-app` fails at build time with a `Could not find mainModule for 'os' architecture` error on apps that declare both `meteor.mainModule.server` and `meteor.testModule.server` in `package.json`.
-
-Dev mode (`meteor run`) builds and starts fine. The failure is specific to `--full-app` test mode.
-
-## Repro
-
-https://github.com/miamagana/meteor-rspack-fullapp-repro
-
-```bash
-git clone https://github.com/miamagana/meteor-rspack-fullapp-repro
-cd meteor-rspack-fullapp-repro
-meteor npm install
-meteor npm test
-```
-
-The repo is ~10 files: one collection in `server/main.js`, one mocha assertion in `test/server/main.js`, the standard rspack scaffold. No app code beyond that.
-
-## Versions
-
-- `METEOR@3.4.1`
-- `rspack@1.1.0` (Meteor package, pinned in `.meteor/versions` after `meteor update --release 3.4.1`)
-- `@meteorjs/rspack@2.0.1`
-- Node 22.x
-- macOS arm64 (also observed on Linux x64 via GitHub Actions runners)
-
-## Observed
+On an app that declares both `meteor.mainModule.server` and `meteor.testModule.server`, `meteor test --full-app` fails at build time:
 
 ```
 => Build failed:
@@ -43,38 +18,29 @@ The repo is ~10 files: one collection in `server/main.js`, one mocha assertion i
    Check the "meteor" section of your package.json file?
 ```
 
-Full output: [`repro.txt`](https://github.com/miamagana/meteor-rspack-fullapp-repro/blob/master/repro.txt).
+Dev mode (`meteor run`) is fine, so the failure is specific to `--full-app`.
 
-## Expected
+## Repro
 
-Build proceeds, `meteortesting:mocha` loads, and the trivial assertion in `test/server/main.js` passes.
+https://github.com/miamagana/meteor-rspack-fullapp-repro (~10 files)
 
-## Analysis
-
-The 3.4.1 fix for #14055 remaps `mainModule.server` to the test entry file (`_build/test/server-meteor.js`) in `--full-app` mode, so both the main and test entries share one bundle:
-
-```js
-// @meteorjs/rspack/lib/config.js
-if (isMeteorAppTestFullApp()) {
-  appEntrypoints = {
-    ...appEntrypoints,
-    mainClient: `${RSPACK_BUILD_CONTEXT}/${testClientModule}`,
-    mainServer: `${RSPACK_BUILD_CONTEXT}/${testServerModule}`,
-  };
-}
+```bash
+git clone https://github.com/miamagana/meteor-rspack-fullapp-repro
+cd meteor-rspack-fullapp-repro
+meteor npm install
+meteor npm test
 ```
 
-The file is created on disk by `ensureModuleFilesExist()` before Meteor's build proceeds. However `tools/isobuild/package-source.js:_findSources` doesn't include the path in its source list for the `os` arch, so `missingMainModule` stays true and `buildmessage.error("Could not find mainModule for 'os' architecture: ...")` fires (around `package-source.js:1002`).
+Full output in [`repro.txt`](https://github.com/miamagana/meteor-rspack-fullapp-repro/blob/master/repro.txt).
 
-Things I confirmed don't matter:
-- The `_build` directory name (renamed via `meteor.buildContext: "build"` — same failure with `build/test/server-meteor.js`).
-- `.meteorignore` / `.gitignore` content (`_build` isn't excluded from either by default; Meteor's source scanner only ignores dotfiles plus the patterns in `bundler.js:exports.ignoreFiles`).
-- File creation timing — the file exists on disk by the time the scan runs (verified via `ls _build/test/`).
+## Versions
 
-The original CodeSignal app where this surfaced is at https://github.com/CodeSignal/codesignal/pull/39621 if you want a larger-scale data point.
+`METEOR@3.4.1`, `rspack@1.1.0`, `@meteorjs/rspack@2.0.1`, Node 22.x. Reproduces on macOS arm64 and Linux x64 (GitHub Actions).
 
-## Workaround?
+## What I think is happening
 
-I haven't found one. Patching the plugin to skip the `mainServer` remap reverts to the two-bundle topology and brings back the original "There is already a collection named X" error from #14055.
+In `--full-app` mode `@meteorjs/rspack/lib/config.js` remaps `mainServer` to the test entry file so both entries share one bundle (the 14055 fix). The file is on disk by the time Meteor scans, but `tools/isobuild/package-source.js:_findSources` doesn't return it for the `os` arch, so `missingMainModule` stays true and the check at `package-source.js:1002` fires.
 
-Happy to test any patches.
+Renaming the build context (`meteor.buildContext: "build"`) doesn't help, so it isn't the leading underscore.
+
+Happy to help debug. I can run patches against the repro, share more logs, or test a candidate fix against the original app this surfaced on ([CodeSignal/codesignal#39621](https://github.com/CodeSignal/codesignal/pull/39621)). Ping me anytime.
