@@ -3,6 +3,6 @@ mobile-experience
 mongo
 ecmascript
 modules
-static-html
+blaze-html-templates
 meteortesting:mocha
 rspack

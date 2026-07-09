@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
-    "test": "meteor test --once --full-app --driver-package meteortesting:mocha --port 4100 --exclude-archs \"web.browser,web.browser.legacy,web.cordova\" --raw-logs"
+    "test": "meteor test --once --full-app --driver-package meteortesting:mocha --port 4100 --raw-logs"
   },
   "dependencies": {
     "@swc/helpers": "^0.5.17",
@@ -24,7 +24,7 @@
     },
     "testModule": {
       "client": "client/main.js",
-      "server": "test/server/main.js"
+      "server": "tests/server/main.js"
     }
   }
 }
